@@ -68,7 +68,23 @@ namespace R5T.Sundsvall.Database
 
         public IEnumerable<EndpointTypeInfo> GetAllInfos()
         {
-            throw new NotImplementedException();
+            var endpointTypeInfos = this.ExecuteInContext(dbContext =>
+            {
+                var outputs = dbContext.EndpointTypes.ToList().Select(x =>
+                {
+                    var endpointTypeInfo = new EndpointTypeInfo()
+                    {
+                        Identity = x.GUID,
+                        Name = x.Name,
+                    };
+
+                    return endpointTypeInfo;
+                });
+
+                return outputs;
+            });
+
+            return endpointTypeInfos;
         }
 
         public EndpointTypeInfo GetInfo(EndpointTypeIdentity identity)
