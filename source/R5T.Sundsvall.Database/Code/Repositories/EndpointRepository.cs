@@ -71,15 +71,17 @@ namespace R5T.Sundsvall.Database
             return endpointIdentity;
         }
 
-        public void AddByName(EndpointInfo endpointInfo)
+        public EndpointIdentity AddByName(EndpointInfo endpointInfo)
         {
+            var endpointIdentity = EndpointIdentity.New();
+
             this.ExecuteInContext(dbContext =>
             {
                 var endpointTypeID = dbContext.EndpointTypes.Where(x => x.Name == endpointInfo.TypeInfo.Name).Select(x => x.ID).Single();
 
                 var endpointEntity = new Entities.Endpoint()
                 {
-                    GUID = EndpointIdentity.GetNewGuid(),
+                    GUID = endpointIdentity.Value,
                     Name = endpointInfo.Name,
                     EndpointTypeID = endpointTypeID,
                 };
@@ -88,6 +90,8 @@ namespace R5T.Sundsvall.Database
 
                 dbContext.SaveChanges();
             });
+
+            return endpointIdentity;
         }
 
         public void SetEndpointForCatchment(CatchmentIdentity catchment, EndpointIdentity endpoint)
