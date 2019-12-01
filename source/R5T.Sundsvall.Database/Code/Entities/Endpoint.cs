@@ -11,7 +11,7 @@ namespace R5T.Sundsvall.Database.Entities
 
         public string Name { get; set; }
 
-        public int EndpointTypeID { get; set; }
+        public int? EndpointTypeID { get; set; }
         public EndpointType EndpointType { get; set; }
     }
 }
