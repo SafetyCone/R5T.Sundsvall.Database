@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+
 using Microsoft.EntityFrameworkCore;
 
 using R5T.Corcyra;
 using R5T.Endalia;
 using R5T.Venetia;
+
+using EndpointEntity = R5T.Sundsvall.Database.Entities.Endpoint;
 
 
 namespace R5T.Sundsvall.Database
@@ -22,39 +26,112 @@ namespace R5T.Sundsvall.Database
             return dbContext;
         }
 
-        public EndpointIdentity GetEndpointIdentityForCatchment(CatchmentIdentity catchment)
+        public EndpointIdentity GetEndpointForCatchment(CatchmentIdentity catchment)
         {
-            throw new NotImplementedException();
+            var endpointIdentity = this.ExecuteInContext(dbContext =>
+            {
+                var endpointGuid = dbContext.EndpointToCatchmentMappings.Where(x => x.CatchmentGUID == catchment.Value).Select(x => x.EndpointGUID).Single();
+
+                var output = EndpointIdentity.From(endpointGuid);
+                return output;
+            });
+
+            return endpointIdentity;
         }
 
         public EndpointTypeIdentity GetEndpointType(EndpointIdentity endpoint)
         {
-            throw new NotImplementedException();
+            var endpointTypeIdentity = this.ExecuteInContext(dbContext =>
+            {
+                var endpointTypeGuid = dbContext.Endpoints.Where(x => x.GUID == endpoint.Value).Select(x => x.EndpointType.GUID).Single();
+
+                var output = EndpointTypeIdentity.From(endpointTypeGuid);
+                return output;
+            });
+
+            return endpointTypeIdentity;
         }
 
         public EndpointIdentity New()
         {
-            throw new NotImplementedException();
+            var endpointIdentity = EndpointIdentity.New();
+
+            this.ExecuteInContext(dbContext =>
+            {
+                var entity = new EndpointEntity()
+                {
+                    GUID = endpointIdentity.Value,
+                };
+
+                dbContext.Endpoints.Add(entity);
+
+                dbContext.SaveChanges();
+            });
+
+            return endpointIdentity;
         }
 
-        public void SetEndpointIdentityForCatchment(CatchmentIdentity catchment, EndpointIdentity endpoint)
+        public void SetEndpointForCatchment(CatchmentIdentity catchment, EndpointIdentity endpoint)
         {
-            throw new NotImplementedException();
+            this.ExecuteInContext(dbContext =>
+            {
+                var mapping = dbContext.EndpointToCatchmentMappings.Where(x => x.EndpointGUID == endpoint.Value).SingleOrDefault();
+
+                if(mapping is object)
+                {
+                    mapping.CatchmentGUID = catchment.Value;
+                }
+                else
+                {
+                    mapping = new Entities.EndpointToCatchmentMapping()
+                    {
+                        EndpointGUID = endpoint.Value,
+                        CatchmentGUID = catchment.Value,
+                    };
+
+                    dbContext.Add(mapping);
+                }
+
+                dbContext.SaveChanges();
+            });
         }
 
         public void SetEndpointType(EndpointIdentity endpoint, EndpointTypeIdentity endpointType)
         {
-            throw new NotImplementedException();
+            this.ExecuteInContext(dbContext =>
+            {
+                var endpointTypeID = dbContext.EndpointTypes.AsNoTracking().Where(x => x.GUID == endpointType.Value).Select(x => x.ID).Single();
+
+                var endpointEntity = dbContext.Endpoints.Where(x => x.GUID == endpoint.Value).Single();
+
+                endpointEntity.EndpointTypeID = endpointTypeID;
+
+                dbContext.SaveChanges();
+            });
         }
 
         public EndpointInfo GetInfo(EndpointIdentity identity)
         {
-            throw new NotImplementedException();
+            var endpointInfo = this.ExecuteInContext(dbContext =>
+            {
+                var entity = dbContext.Endpoints.Where(x => x.GUID == identity.Value).Include(x => x.EndpointType).Single();
+
+                var output = entity.ToAppType();
+                return output;
+            });
+
+            return endpointInfo;
         }
 
         public IEnumerable<EndpointInfo> GetAllInfos()
         {
-            throw new NotImplementedException();
+            var endpointInfos = this.ExecuteInContext(dbContext =>
+            {
+                var outputs = dbContext.Endpoints.ToList().Select(x => x.ToAppType());
+                return outputs;
+            });
+
+            return endpointInfos;
         }
     }
 }
