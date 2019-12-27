@@ -13,17 +13,12 @@ using EndpointEntity = R5T.Sundsvall.Database.Entities.Endpoint;
 
 namespace R5T.Sundsvall.Database
 {
-    public class EndpointRepository : DatabaseRepositoryBase<EndpointDbContext>, IEndpointRepository
+    public class EndpointRepository<TDbContext> : ProvidedDatabaseRepositoryBase<TDbContext>, IEndpointRepository
+        where TDbContext: DbContext, IEndpointDbContext
     {
-        public EndpointRepository(DbContextOptions<EndpointDbContext> dbContextOptions)
-            : base(dbContextOptions)
+        public EndpointRepository(DbContextOptions<TDbContext> dbContextOptions, IDbContextProvider<TDbContext> dbContextProvider)
+            : base(dbContextOptions, dbContextProvider)
         {
-        }
-
-        public override EndpointDbContext GetNewDbContext()
-        {
-            var dbContext = new EndpointDbContext(this.DbContextOptions);
-            return dbContext;
         }
 
         public EndpointIdentity GetEndpointForCatchment(CatchmentIdentity catchment)
