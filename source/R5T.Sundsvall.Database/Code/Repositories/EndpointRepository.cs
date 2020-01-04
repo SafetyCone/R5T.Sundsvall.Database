@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -38,7 +39,7 @@ namespace R5T.Sundsvall.Database
         {
             var endpointTypeIdentity = this.ExecuteInContext(dbContext =>
             {
-                var endpointTypeGuid = dbContext.Endpoints.Where(x => x.GUID == endpoint.Value).Select(x => x.EndpointType.GUID).Single();
+                var endpointTypeGuid = dbContext.GetEndpoint(endpoint).Select(x => x.EndpointType.GUID).Single();
 
                 var output = EndpointTypeIdentity.From(endpointTypeGuid);
                 return output;
@@ -118,7 +119,7 @@ namespace R5T.Sundsvall.Database
         {
             this.ExecuteInContext(dbContext =>
             {
-                var endpointTypeID = dbContext.EndpointTypes.AsNoTracking().Where(x => x.GUID == endpointType.Value).Select(x => x.ID).Single();
+                var endpointTypeID = dbContext.GetEndpoint(endpoint).AsNoTracking().Select(x => x.ID).Single();
 
                 var endpointEntity = dbContext.Endpoints.Where(x => x.GUID == endpoint.Value).Single();
 
@@ -132,7 +133,7 @@ namespace R5T.Sundsvall.Database
         {
             var endpointInfo = this.ExecuteInContext(dbContext =>
             {
-                var entity = dbContext.Endpoints.Where(x => x.GUID == identity.Value).Include(x => x.EndpointType).Single();
+                var entity = dbContext.GetEndpoint(identity).Include(x => x.EndpointType).Single();
 
                 var output = entity.ToAppType();
                 return output;
@@ -150,6 +151,45 @@ namespace R5T.Sundsvall.Database
             });
 
             return endpointInfos;
+        }
+
+        public async Task<bool> CatchmentHasEndpoint(CatchmentIdentity catchmentIdentity)
+        {
+            var hasEndpoint = await this.ExecuteInContextAsync(async dbContext =>
+            {
+                var mappingEntityOrDefault = await dbContext.EndpointToCatchmentMappings.Where(x => x.CatchmentGUID == catchmentIdentity.Value).SingleOrDefaultAsync();
+
+                var output = mappingEntityOrDefault is object;
+                return output;
+            });
+
+            return hasEndpoint;
+        }
+
+        public async Task SetNameAsync(EndpointIdentity endpoint, string name)
+        {
+            await this.ExecuteInContextAsync(async dbContext =>
+            {
+                var endpointEntity = await dbContext.GetEndpoint(endpoint).SingleAsync();
+
+                endpointEntity.Name = name;
+
+                await dbContext.SaveChangesAsync();
+            });
+        }
+
+        public async Task SetEndpointTypeAsync(EndpointIdentity endpoint, EndpointTypeIdentity endpointType)
+        {
+            await this.ExecuteInContextAsync(async dbContext =>
+            {
+                var endpointTypeID = await dbContext.GetEndpointType(endpointType).AsNoTracking().Select(x => x.ID).SingleAsync();
+
+                var endpointEntity = await dbContext.GetEndpoint(endpoint).SingleAsync();
+
+                endpointEntity.EndpointTypeID = endpointTypeID;
+
+                await dbContext.SaveChangesAsync();
+            });
         }
     }
 }
