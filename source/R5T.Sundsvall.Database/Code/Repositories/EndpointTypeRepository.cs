@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -20,9 +21,9 @@ namespace R5T.Sundsvall.Database
         {
         }
 
-        public void Add(EndpointTypeInfo endpointType)
+        public async Task Add(EndpointTypeInfo endpointType)
         {
-            this.ExecuteInContext(dbContext =>
+            await this.ExecuteInContextAsync(async dbContext =>
             {
                 var entity = new EndpointTypeEntity()
                 {
@@ -32,27 +33,27 @@ namespace R5T.Sundsvall.Database
 
                 dbContext.EndpointTypes.Add(entity);
 
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
             });
         }
 
-        public void Delete(EndpointTypeIdentity identity)
+        public async Task Delete(EndpointTypeIdentity identity)
         {
-            this.ExecuteInContext(dbContext =>
+            await this.ExecuteInContextAsync(async dbContext =>
             {
-                var entity = dbContext.EndpointTypes.Where(x => x.GUID == identity.Value).Single();
+                var entity = await dbContext.GetEndpointType(identity).SingleAsync();
 
                 dbContext.Remove(entity);
 
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
             });
         }
 
-        public bool Exists(EndpointTypeIdentity identity)
+        public async Task<bool> Exists(EndpointTypeIdentity identity)
         {
-            var exists = this.ExecuteInContext(dbContext =>
+            var exists = await this.ExecuteInContextAsync(async dbContext =>
             {
-                var entity = dbContext.EndpointTypes.Where(x => x.GUID == identity.Value).SingleOrDefault();
+                var entity = await dbContext.GetEndpointType(identity).SingleOrDefaultAsync();
 
                 var output = entity is object;
                 return output;
@@ -61,11 +62,13 @@ namespace R5T.Sundsvall.Database
             return exists;
         }
 
-        public IEnumerable<EndpointTypeInfo> GetAllInfos()
+        public async Task<IEnumerable<EndpointTypeInfo>> GetAllInfos()
         {
-            var endpointTypeInfos = this.ExecuteInContext(dbContext =>
+            var endpointTypeInfos = await this.ExecuteInContextAsync(async dbContext =>
             {
-                var outputs = dbContext.EndpointTypes.ToList().Select(x =>
+                var endpointTypes = await dbContext.EndpointTypes.ToListAsync();
+
+                var outputs = endpointTypes.Select(x =>
                 {
                     var endpointTypeInfo = new EndpointTypeInfo()
                     {
@@ -82,11 +85,11 @@ namespace R5T.Sundsvall.Database
             return endpointTypeInfos;
         }
 
-        public EndpointTypeInfo GetInfo(EndpointTypeIdentity identity)
+        public async Task<EndpointTypeInfo> GetInfo(EndpointTypeIdentity identity)
         {
-            var endpointTypeInfo = this.ExecuteInContext(dbContext =>
+            var endpointTypeInfo = await this.ExecuteInContextAsync(async dbContext =>
             {
-                var entity = dbContext.EndpointTypes.Where(x => x.GUID == identity.Value).SingleOrDefault();
+                var entity = await dbContext.GetEndpointType(identity).SingleOrDefaultAsync();
 
                 var output = new EndpointTypeInfo()
                 {
@@ -100,34 +103,34 @@ namespace R5T.Sundsvall.Database
             return endpointTypeInfo;
         }
 
-        public string GetName(EndpointTypeIdentity identity)
+        public async Task<string> GetName(EndpointTypeIdentity identity)
         {
-            var name = this.ExecuteInContext(dbContext =>
+            var name = await this.ExecuteInContextAsync(async dbContext =>
             {
-                var output = dbContext.EndpointTypes.Where(x => x.GUID == identity.Value).Select(x => x.Name).Single();
+                var output = await dbContext.GetEndpointType(identity).Select(x => x.Name).SingleAsync();
                 return output;
             });
 
             return name;
         }
 
-        public void SetName(EndpointTypeIdentity identity, string name)
+        public async Task SetName(EndpointTypeIdentity identity, string name)
         {
-            this.ExecuteInContext(dbContext =>
+            await this.ExecuteInContextAsync(async dbContext =>
             {
-                var entity = dbContext.EndpointTypes.Where(x => x.GUID == identity.Value).Single();
+                var entity = await dbContext.GetEndpointType(identity).SingleAsync();
 
                 entity.Name = name;
 
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
             });
         }
 
-        public EndpointTypeIdentity New()
+        public async Task<EndpointTypeIdentity> New()
         {
             var endpointTypeIdentity = EndpointTypeIdentity.New();
 
-            this.ExecuteInContext(dbContext =>
+            await this.ExecuteInContextAsync(async dbContext =>
             {
                 var entity = new EndpointTypeEntity()
                 {
@@ -136,7 +139,7 @@ namespace R5T.Sundsvall.Database
 
                 dbContext.EndpointTypes.Add(entity);
 
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
             });
 
             return endpointTypeIdentity;
