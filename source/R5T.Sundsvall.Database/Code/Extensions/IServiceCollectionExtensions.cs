@@ -52,5 +52,26 @@ namespace R5T.Sundsvall.Database
             var serviceAction = ServiceAction.New<IEndpointTypeRepository>(() => services.AddEndpointTypeRepository<TDbContext>());
             return serviceAction;
         }
+
+        /// <summary>
+        /// Adds the <see cref="EndpointAndTypeRepository{TDbContext}"/> implementation of <see cref="IEndpointAndTypeRepository"/> as a <see cref="ServiceLifetime.Singleton"/>.
+        /// </summary>
+        public static IServiceCollection AddEndpointAndTypeRepository<TDbContext>(this IServiceCollection services)
+            where TDbContext: DbContext, IEndpointDbContext
+        {
+            services.AddSingleton<IEndpointAndTypeRepository, EndpointAndTypeRepository<TDbContext>>();
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="EndpointAndTypeRepository{TDbContext}"/> implementation of <see cref="IEndpointAndTypeRepository"/> as a <see cref="ServiceLifetime.Singleton"/>.
+        /// </summary>
+        public static IServiceAction<IEndpointAndTypeRepository> AddEndpointAndTypeRepositoryAction<TDbContext>(this IServiceCollection services)
+            where TDbContext : DbContext, IEndpointDbContext
+        {
+            var serviceAction = ServiceAction.New<IEndpointAndTypeRepository>(() => services.AddEndpointAndTypeRepository<TDbContext>());
+            return serviceAction;
+        }
     }
 }
