@@ -21,11 +21,14 @@ namespace R5T.Sundsvall.Database
 
         public async Task<Dictionary<string, List<EndpointIdentity>>> GetEndpointIdentitiesByEndpointTypeName(IEnumerable<EndpointIdentity> endpointIdentities)
         {
+            var endpointIdentityValues = endpointIdentities.Select(x => x.Value).ToList();
+
             var endpointIdentitiesByEndpointTypeName = await this.ExecuteInContextAsync(async dbContext =>
             {
                 var gettingEndpointsByEndpointTypeName =
                     from endpoint in dbContext.Endpoints
                     join endpointType in dbContext.EndpointTypes on endpoint.EndpointTypeID equals endpointType.ID
+                    where endpointIdentityValues.Contains(endpoint.GUID)
                     group new { endpointType.Name, endpoint.GUID } by endpointType.Name into endpointsByEndpointTypeNameGroup
                     select endpointsByEndpointTypeNameGroup;
 
