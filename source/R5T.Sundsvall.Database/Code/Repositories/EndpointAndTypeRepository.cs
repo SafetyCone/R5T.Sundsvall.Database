@@ -25,14 +25,29 @@ namespace R5T.Sundsvall.Database
 
             var endpointIdentitiesByEndpointTypeName = await this.ExecuteInContextAsync(async dbContext =>
             {
-                var gettingEndpointsByEndpointTypeName =
+
+                // var old =
+                //     from endpoint in dbContext.Endpoints
+                //     join endpointType in dbContext.EndpointTypes on endpoint.EndpointTypeID equals endpointType.ID
+                //     where endpointIdentityValues.Contains(endpoint.GUID)
+                //     group new { endpointType.Name, endpoint.GUID } by endpointType.Name into endpointsByEndpointTypeNameGroup
+                //     select endpointsByEndpointTypeNameGroup;
+
+                var gettingEndpoints =
                     from endpoint in dbContext.Endpoints
                     join endpointType in dbContext.EndpointTypes on endpoint.EndpointTypeID equals endpointType.ID
                     where endpointIdentityValues.Contains(endpoint.GUID)
-                    group new { endpointType.Name, endpoint.GUID } by endpointType.Name into endpointsByEndpointTypeNameGroup
+                    select new { endpoint = endpoint, endpointType = endpointType };
+
+                var endpoints = await gettingEndpoints.ToListAsync();
+
+                var gettingEndpointsByEndpointTypeName =
+                    from entry in endpoints
+                    group new { entry.endpointType.Name, entry.endpoint.GUID } by entry.endpointType.Name into endpointsByEndpointTypeNameGroup
                     select endpointsByEndpointTypeNameGroup;
 
-                var output = await gettingEndpointsByEndpointTypeName.ToDictionaryAsync(
+
+                var output = gettingEndpointsByEndpointTypeName.ToDictionary(
                     grouping => grouping.Key,
                     grouping => grouping
                         .Select(y => EndpointIdentity.From(y.GUID))
