@@ -22,6 +22,7 @@ namespace R5T.Sundsvall.Database
         {
         }
 
+        // TODO: DEPRECATE
         public async Task<EndpointIdentity> GetEndpointForCatchment(CatchmentIdentity catchment)
         {
             var endpointIdentity = await this.ExecuteInContextAsync(async dbContext =>
@@ -90,6 +91,7 @@ namespace R5T.Sundsvall.Database
             return endpointIdentity;
         }
 
+        // TODO: DEPRECATE
         public async Task SetEndpointForCatchment(CatchmentIdentity catchment, EndpointIdentity endpoint)
         {
             await this.ExecuteInContextAsync(async dbContext =>
@@ -158,6 +160,7 @@ namespace R5T.Sundsvall.Database
             return endpointInfos;
         }
 
+        // TODO: DEPRECATE
         public async Task<bool> CatchmentHasEndpoint(CatchmentIdentity catchmentIdentity)
         {
             var hasEndpoint = await this.ExecuteInContextAsync(async dbContext =>
@@ -197,6 +200,7 @@ namespace R5T.Sundsvall.Database
             });
         }
 
+        // TODO: DEPRECATE
         public async Task<bool> EndpointHasCatchment(EndpointIdentity endpointIdentity)
         {
             var hasCatchment = await this.ExecuteInContextAsync(async dbContext =>
@@ -210,6 +214,7 @@ namespace R5T.Sundsvall.Database
             return hasCatchment;
         }
 
+        // TODO: DEPRECATE
         public async Task<CatchmentIdentity> GetCatchmentForEndpoint(EndpointIdentity endpointIdentity)
         {
             var catchmentIdentity = await this.ExecuteInContextAsync(async dbContext =>
