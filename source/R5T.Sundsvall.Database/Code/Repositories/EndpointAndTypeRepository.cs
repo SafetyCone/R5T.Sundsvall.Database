@@ -37,7 +37,7 @@ namespace R5T.Sundsvall.Database
                     from endpoint in dbContext.Endpoints
                     join endpointType in dbContext.EndpointTypes on endpoint.EndpointTypeID equals endpointType.ID
                     where endpointIdentityValues.Contains(endpoint.GUID)
-                    select new { endpoint = endpoint, endpointType = endpointType };
+                    select new { endpoint, endpointType };
 
                 var endpoints = await gettingEndpoints.ToListAsync();
 
